@@ -15,16 +15,16 @@
 
     <script type="text/x-template" id="t">
       <div>
-        <h1>{{ total }} Components</h1>
-        <p>{{ action }} took {{time}}ms.</p>
-        <button @click="shuffle">shuffle</button>
-        <button @click="add">add</button>
+        <h1>{{ this.total }} Components</h1>
+        <p>{{ this.action }} took {{this.time}}ms.</p>
+        <button @click="this.shuffle">shuffle</button>
+        <button @click="this.add">add</button>
         <table class="table table-hover table-striped test-data">
-          <row v-for="item in items" :key="item.id"
-            :class="{ danger: item.id === selected }"
+          <row v-for="item in this.items" :key="item.id"
+            :class="{ danger: item.id === this.selected }"
             :item="item"
-            @select="select(item)"
-            @remove="remove(item)">
+            @select="this.select(item)"
+            @remove="this.remove(item)">
           </row>
         </table>
       </div>
@@ -32,12 +32,12 @@
 
     <script type="text/x-template" id="row">
       <tr>
-        <td class="col-md-1">{{item.id}}</td>
+        <td class="col-md-1">{{this.item.id}}</td>
         <td class="col-md-4">
-            <a @click="$emit('select')">{{item.label}}</a>
+            <a @click="this.$emit('select')">{{this.item.label}}</a>
         </td>
         <td class="col-md-1">
-          <button @click="$emit('remove')">remove</button>
+          <button @click="this.$emit('remove')">remove</button>
         </td>
       </tr>
     </script>

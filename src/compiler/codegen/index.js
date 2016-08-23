@@ -27,10 +27,10 @@ export function generate (
   transforms = pluckModuleFunction(options.modules, 'transformCode')
   dataGenFns = pluckModuleFunction(options.modules, 'genData')
   platformDirectives = options.directives || {}
-  const code = ast ? genElement(ast) : '_h("div")'
+  const code = ast ? genElement(ast) : 'this._h("div")'
   staticRenderFns = prevStaticRenderFns
   return {
-    render: `with(this){return ${code}}`,
+    render: `return ${code}`,
     staticRenderFns: currentStaticRenderFns
   }
 }
@@ -39,8 +39,8 @@ function genElement (el: ASTElement): string {
   if (el.staticRoot && !el.staticProcessed) {
     // hoist static sub-trees out
     el.staticProcessed = true
-    staticRenderFns.push(`with(this){return ${genElement(el)}}`)
-    return `_m(${staticRenderFns.length - 1}${el.staticInFor ? ',true' : ''})`
+    staticRenderFns.push(`return ${genElement(el)};`)
+    return `this._m(${staticRenderFns.length - 1}${el.staticInFor ? ',true' : ''})`
   } else if (el.for && !el.forProcessed) {
     return genFor(el)
   } else if (el.if && !el.ifProcessed) {
@@ -57,7 +57,7 @@ function genElement (el: ASTElement): string {
     } else {
       const data = genData(el)
       const children = el.inlineTemplate ? null : genChildren(el)
-      code = `_h('${el.tag}'${
+      code = `this._h('${el.tag}'${
         data ? `,${data}` : '' // data
       }${
         children ? `,${children}` : '' // children
@@ -89,10 +89,10 @@ function genFor (el: ASTElement): string {
   const iterator1 = el.iterator1 ? `,${el.iterator1}` : ''
   const iterator2 = el.iterator2 ? `,${el.iterator2}` : ''
   el.forProcessed = true // avoid recursion
-  return `(${exp})&&_l((${exp}),` +
+  return `(${exp})&&this._l((${exp}),` +
     `function(${alias}${iterator1}${iterator2}){` +
       `return ${genElement(el)}` +
-    '})'
+    '}.bind(this))'
 }
 
 function genData (el: ASTElement): string | void {
@@ -161,8 +161,8 @@ function genData (el: ASTElement): string | void {
       const inlineRenderFns = generate(ast, currentOptions)
       data += `inlineTemplate:{render:function(){${
         inlineRenderFns.render
-      }},staticRenderFns:[${
-        inlineRenderFns.staticRenderFns.map(code => `function(){${code}}`).join(',')
+      }}.bind(this),staticRenderFns:[${
+        inlineRenderFns.staticRenderFns.map(code => `function(){${code}}.bind(this)`).join(',')
       }]}`
     }
   }
@@ -216,7 +216,7 @@ function genNode (node: ASTNode) {
 
 function genText (text: ASTText | ASTExpression): string {
   return text.type === 2
-    ? text.expression // no need for () because already wrapped in _s()
+    ? text.expression // no need for () because already wrapped in this._s()
     : JSON.stringify(text.text)
 }
 
@@ -230,7 +230,7 @@ function genSlot (el: ASTElement): string {
 
 function genComponent (el: ASTElement): string {
   const children = genChildren(el)
-  return `_h(${el.component},${genData(el)}${
+  return `this._h(${el.component},${genData(el)}${
     children ? `,${children}` : ''
   })`
 }
@@ -247,7 +247,7 @@ function genProps (props: Array<{ name: string, value: string }>): string {
 function genHooks (hooks: { [key: string]: Array<string> }): string {
   let res = ''
   for (const key in hooks) {
-    res += `"${key}":function(n1,n2){${hooks[key].join(';')}},`
+    res += `"${key}":function(n1,n2){${hooks[key].join(';')}}.bind(this),`
   }
   return res.slice(0, -1)
 }

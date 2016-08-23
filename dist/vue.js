@@ -5201,7 +5201,7 @@ var nodeOps = Object.freeze({
       }
       // tag token
       var exp = parseFilters(match[1].trim());
-      tokens.push('_s(' + exp + ')');
+      tokens.push('this._s(' + exp + ')');
       lastIndex = index + match[0].length;
     }
     if (lastIndex < text.length) {
@@ -5914,10 +5914,10 @@ var nodeOps = Object.freeze({
     transforms$1 = pluckModuleFunction(options.modules, 'transformCode');
     dataGenFns = pluckModuleFunction(options.modules, 'genData');
     platformDirectives$1 = options.directives || {};
-    var code = ast ? genElement(ast) : '_h("div")';
+    var code = ast ? genElement(ast) : 'this._h("div")';
     staticRenderFns = prevStaticRenderFns;
     return {
-      render: 'with(this){return ' + code + '}',
+      render: 'return ' + code,
       staticRenderFns: currentStaticRenderFns
     };
   }
@@ -5926,8 +5926,8 @@ var nodeOps = Object.freeze({
     if (el.staticRoot && !el.staticProcessed) {
       // hoist static sub-trees out
       el.staticProcessed = true;
-      staticRenderFns.push('with(this){return ' + genElement(el) + '}');
-      return '_m(' + (staticRenderFns.length - 1) + (el.staticInFor ? ',true' : '') + ')';
+      staticRenderFns.push('return ' + genElement(el) + ';');
+      return 'this._m(' + (staticRenderFns.length - 1) + (el.staticInFor ? ',true' : '') + ')';
     } else if (el.for && !el.forProcessed) {
       return genFor(el);
     } else if (el.if && !el.ifProcessed) {
@@ -5944,7 +5944,7 @@ var nodeOps = Object.freeze({
       } else {
         var data = genData(el);
         var children = el.inlineTemplate ? null : genChildren(el);
-        code = '_h(\'' + el.tag + '\'' + (data ? ',' + data : '' // data
+        code = 'this._h(\'' + el.tag + '\'' + (data ? ',' + data : '' // data
         ) + (children ? ',' + children : '' // children
         ) + ')';
       }
@@ -5972,7 +5972,7 @@ var nodeOps = Object.freeze({
     var iterator1 = el.iterator1 ? ',' + el.iterator1 : '';
     var iterator2 = el.iterator2 ? ',' + el.iterator2 : '';
     el.forProcessed = true; // avoid recursion
-    return '(' + exp + ')&&_l((' + exp + '),' + ('function(' + alias + iterator1 + iterator2 + '){') + ('return ' + genElement(el)) + '})';
+    return '(' + exp + ')&&this._l((' + exp + '),' + ('function(' + alias + iterator1 + iterator2 + '){') + ('return ' + genElement(el)) + '}.bind(this))';
   }
 
   function genData(el) {
@@ -6037,8 +6037,8 @@ var nodeOps = Object.freeze({
       }
       if (ast.type === 1) {
         var inlineRenderFns = generate(ast, currentOptions);
-        data += 'inlineTemplate:{render:function(){' + inlineRenderFns.render + '},staticRenderFns:[' + inlineRenderFns.staticRenderFns.map(function (code) {
-          return 'function(){' + code + '}';
+        data += 'inlineTemplate:{render:function(){' + inlineRenderFns.render + '}.bind(this),staticRenderFns:[' + inlineRenderFns.staticRenderFns.map(function (code) {
+          return 'function(){' + code + '}.bind(this)';
         }).join(',') + ']}';
       }
     }
@@ -6088,7 +6088,7 @@ var nodeOps = Object.freeze({
   }
 
   function genText(text) {
-    return text.type === 2 ? text.expression // no need for () because already wrapped in _s()
+    return text.type === 2 ? text.expression // no need for () because already wrapped in this._s()
     : JSON.stringify(text.text);
   }
 
@@ -6100,7 +6100,7 @@ var nodeOps = Object.freeze({
 
   function genComponent(el) {
     var children = genChildren(el);
-    return '_h(' + el.component + ',' + genData(el) + (children ? ',' + children : '') + ')';
+    return 'this._h(' + el.component + ',' + genData(el) + (children ? ',' + children : '') + ')';
   }
 
   function genProps(props) {
@@ -6115,7 +6115,7 @@ var nodeOps = Object.freeze({
   function genHooks(hooks) {
     var res = '';
     for (var _key in hooks) {
-      res += '"' + _key + '":function(n1,n2){' + hooks[_key].join(';') + '},';
+      res += '"' + _key + '":function(n1,n2){' + hooks[_key].join(';') + '}.bind(this),';
     }
     return res.slice(0, -1);
   }
@@ -6322,7 +6322,7 @@ var nodeOps = Object.freeze({
     if (isNative && needCompositionGuard) {
       code = 'if($event.target.composing)return;' + code;
     }
-    addProp(el, 'value', isNative ? '_s(' + value + ')' : '(' + value + ')');
+    addProp(el, 'value', isNative ? 'this._s(' + value + ')' : '(' + value + ')');
     addHandler(el, event, code, null, true);
     if (needCompositionGuard) {
       // need runtime directive code to help with composition events
@@ -6350,13 +6350,13 @@ var nodeOps = Object.freeze({
 
   function text(el, dir) {
     if (dir.value) {
-      addProp(el, 'textContent', '_s(' + dir.value + ')');
+      addProp(el, 'textContent', 'this._s(' + dir.value + ')');
     }
   }
 
   function html(el, dir) {
     if (dir.value) {
-      addProp(el, 'innerHTML', '_s(' + dir.value + ')');
+      addProp(el, 'innerHTML', 'this._s(' + dir.value + ')');
     }
   }
 

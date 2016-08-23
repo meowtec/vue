@@ -111,7 +111,7 @@ function genDefaultModel (
   if (isNative && needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
   }
-  addProp(el, 'value', isNative ? `_s(${value})` : `(${value})`)
+  addProp(el, 'value', isNative ? `this._s(${value})` : `(${value})`)
   addHandler(el, event, code, null, true)
   if (needCompositionGuard) {
     // need runtime directive code to help with composition events

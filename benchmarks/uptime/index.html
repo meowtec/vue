@@ -71,10 +71,10 @@
   <body>
     <p>Reference: <a href="https://github.com/tildeio/glimmer/blob/master/packages/glimmer-demos/lib/uptime.ts">Ember Glimmer 2 demo</a></p>
     <div id="app">
-      <p>FPS: {{ fps }}</p>
-      <button @click="toggle">{{ playing ? 'pause' : 'play' }}</button>
+      <p>FPS: {{ this.fps }}</p>
+      <button @click="this.toggle">{{ this.playing ? 'pause' : 'play' }}</button>
       <server-uptime
-        v-for="server in servers"
+        v-for="server in this.servers"
         :key="server.name"
         :name="server.name"
         :days="server.days">
@@ -120,12 +120,12 @@
         },
         template: `
           <div class="server-uptime">
-            <h1>{{name}}</h1>
-            <h2>{{upDays}} Days Up</h2>
-            <h2>Biggest Streak: {{maxStreak}}</h2>
+            <h1>{{this.name}}</h1>
+            <h2>{{this.upDays}} Days Up</h2>
+            <h2>Biggest Streak: {{this.maxStreak}}</h2>
             <div class="days">
               <uptime-day
-                v-for="day in days"
+                v-for="day in this.days"
                 :key="day.number"
                 :day="day">
               </uptime-day>

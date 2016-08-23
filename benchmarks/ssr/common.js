@@ -35,11 +35,11 @@ module.exports = {
         }
       },
       // template: '<table><tr v-for="row in grid"><th>123</th><td v-for="item in row.items">{{ item.id }}</td></tr></table>',
-      template: '<table width="100%" cellspacing="2"><row v-for="row in grid" :row="row"></row></table>',
+      template: '<table width="100%" cellspacing="2"><row v-for="row in this.grid" :row="row"></row></table>',
       components: {
         row: {
           props: ['row'],
-          template: '<tr><th>{{ Math.random() }}</th><column v-for="item in row.items"></column></tr>',
+          template: '<tr><th>{{ Math.random() }}</th><column v-for="item in this.row.items"></column></tr>',
           components: {
             column: {
               template: '<td class="item">' +
