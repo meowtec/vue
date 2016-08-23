@@ -1914,7 +1914,9 @@ function renderMixin(Vue) {
     // render self
     var vnode = void 0;
     try {
+      console.time('render');
       vnode = render.call(vm._renderProxy, vm.$createElement);
+      console.timeEnd('render');
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         warn('Error when rendering ' + formatComponentName(vm) + ':');
@@ -3655,6 +3657,11 @@ var directives = {
   },
   update: function updateDirectives(oldVnode, vnode) {
     applyDirectives(oldVnode, vnode, 'update');
+    // if old vnode has directives but new vnode doesn't
+    // we need to teardown the directives on the old one.
+    if (oldVnode.data.directives && !vnode.data.directives) {
+      applyDirectives(oldVnode, oldVnode, 'unbind');
+    }
   },
   postpatch: function postupdateDirectives(oldVnode, vnode) {
     applyDirectives(oldVnode, vnode, 'componentUpdated');
@@ -3670,7 +3677,7 @@ function applyDirectives(oldVnode, vnode, hook) {
   var dirs = vnode.data.directives;
   if (dirs) {
     var oldDirs = oldVnode.data.directives;
-    var isUpdate = hook === 'update';
+    var isUpdate = hook === 'update' || hook === 'componentUpdated';
     for (var i = 0; i < dirs.length; i++) {
       var dir = dirs[i];
       var def = resolveAsset(vnode.context.$options, 'directives', dir.name, true);

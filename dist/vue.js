@@ -1921,7 +1921,9 @@
       // render self
       var vnode = void 0;
       try {
+        console.time('render');
         vnode = render.call(vm._renderProxy, vm.$createElement);
+        console.timeEnd('render');
       } catch (e) {
         if ("development" !== 'production') {
           warn('Error when rendering ' + formatComponentName(vm) + ':');
@@ -3664,6 +3666,11 @@ var nodeOps = Object.freeze({
     },
     update: function updateDirectives(oldVnode, vnode) {
       applyDirectives(oldVnode, vnode, 'update');
+      // if old vnode has directives but new vnode doesn't
+      // we need to teardown the directives on the old one.
+      if (oldVnode.data.directives && !vnode.data.directives) {
+        applyDirectives(oldVnode, oldVnode, 'unbind');
+      }
     },
     postpatch: function postupdateDirectives(oldVnode, vnode) {
       applyDirectives(oldVnode, vnode, 'componentUpdated');
@@ -3679,7 +3686,7 @@ var nodeOps = Object.freeze({
     var dirs = vnode.data.directives;
     if (dirs) {
       var oldDirs = oldVnode.data.directives;
-      var isUpdate = hook === 'update';
+      var isUpdate = hook === 'update' || hook === 'componentUpdated';
       for (var i = 0; i < dirs.length; i++) {
         var dir = dirs[i];
         var def = resolveAsset(vnode.context.$options, 'directives', dir.name, true);
@@ -5360,7 +5367,7 @@ var nodeOps = Object.freeze({
 
         if ("client" !== 'server' && isForbiddenTag(element)) {
           element.forbidden = true;
-          "development" !== 'production' && warn$1('Templates should only be responsbile for mapping the state to the ' + 'UI. Avoid placing tags with side-effects in your templates, such as ' + ('<' + tag + '>.'));
+          "development" !== 'production' && warn$1('Templates should only be responsible for mapping the state to the ' + 'UI. Avoid placing tags with side-effects in your templates, such as ' + ('<' + tag + '>.'));
         }
 
         // apply pre-transforms
@@ -6431,6 +6438,7 @@ var nodeOps = Object.freeze({
   Vue.prototype.$mount = function (el, hydrating) {
     el = el && query(el);
 
+    /* istanbul ignore if */
     if (el === document.body || el === document.documentElement) {
       "development" !== 'production' && warn('Do not mount Vue to <html> or <body> - mount to normal elements instead.');
       return this;

@@ -45,7 +45,9 @@ export function renderMixin (Vue: Class<Component>) {
     // render self
     let vnode
     try {
+      console.time('render')
       vnode = render.call(vm._renderProxy, vm.$createElement)
+      console.timeEnd('render')
     } catch (e) {
       if (process.env.NODE_ENV !== 'production') {
         warn(`Error when rendering ${formatComponentName(vm)}:`)
